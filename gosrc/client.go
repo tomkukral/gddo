@@ -13,6 +13,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
 )
 
 type httpClient struct {
@@ -36,6 +38,13 @@ func (c *httpClient) get(ctx context.Context, url string) (*http.Response, error
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
+	}
+
+	if pf := os.Getenv("PRIVATE_REPO_PREFIX"); pf != "" && strings.HasPrefix(url, pf) {
+		username := os.Getenv("PRIVATE_REPO_USER")
+		passwd := os.Getenv("PRIVATE_REPO_PASSWORD")
+
+		req.SetBasicAuth(username, passwd)
 	}
 
 	// Take the trace ID to group all outbound requests together.
